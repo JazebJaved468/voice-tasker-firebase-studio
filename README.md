@@ -1,3 +1,6 @@
+# Deployed at
+https://voice-tasker-firebase-studio.vercel.app/
+
 # Firebase Studio
 
 This is a NextJS starter in Firebase Studio.
