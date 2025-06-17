@@ -16,9 +16,11 @@ import {
   onSnapshot,
   query,
   orderBy,
+  where,
   Timestamp,
   writeBatch,
 } from 'firebase/firestore';
+import { getGuestUserId } from '@/lib/user';
 
 const LOGS_COLLECTION = 'logs';
 
@@ -27,18 +29,28 @@ export default function VoiceTaskerApp() {
   const [selectedLogIds, setSelectedLogIds] = useState<string[]>([]);
   const [isClient, setIsClient] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
     setIsClient(true);
+    const guestId = getGuestUserId();
+    setCurrentUserId(guestId);
   }, []);
 
   useEffect(() => {
-    if (!isClient) return;
+    if (!isClient || !currentUserId) {
+      setIsLoading(false); // Set loading to false if no user ID yet or not client
+      return;
+    }
 
     setIsLoading(true);
     const logsCollectionRef = collection(db, LOGS_COLLECTION);
-    const q = query(logsCollectionRef, orderBy('timestamp', 'desc'));
+    const q = query(
+      logsCollectionRef,
+      where('userId', '==', currentUserId),
+      orderBy('timestamp', 'desc')
+    );
 
     const unsubscribe = onSnapshot(
       q,
@@ -50,6 +62,7 @@ export default function VoiceTaskerApp() {
             id: doc.id,
             text: data.text,
             timestamp: (data.timestamp as Timestamp).toDate(),
+            userId: data.userId,
           });
         });
         setLogs(fetchedLogs);
@@ -66,14 +79,22 @@ export default function VoiceTaskerApp() {
       }
     );
 
-    return () => unsubscribe(); // Cleanup listener on component unmount
-  }, [isClient, toast]);
+    return () => unsubscribe();
+  }, [isClient, currentUserId, toast]);
 
   const addLog = useCallback(async (text: string) => {
-    if (!isClient) return;
+    if (!isClient || !currentUserId) {
+      toast({
+        variant: "destructive",
+        title: "Error Saving Log",
+        description: "User ID not available. Cannot save log.",
+      });
+      return;
+    }
     const newLog = {
       text,
-      timestamp: Timestamp.fromDate(new Date()), // Use Firestore Timestamp
+      timestamp: Timestamp.fromDate(new Date()),
+      userId: currentUserId,
     };
     try {
       await addDoc(collection(db, LOGS_COLLECTION), newLog);
@@ -86,7 +107,7 @@ export default function VoiceTaskerApp() {
         description: "Could not save the log to the database.",
       });
     }
-  }, [isClient, toast]);
+  }, [isClient, currentUserId, toast]);
 
   const toggleSelectLog = (id: string) => {
     setSelectedLogIds((prevSelected) =>
@@ -140,16 +161,20 @@ export default function VoiceTaskerApp() {
     setSelectedLogIds([]);
   };
 
+  const showLoadingOrInitializing = isLoading || (!isClient || !currentUserId);
+
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <Header />
       <main className="flex-grow container mx-auto px-4 py-8 md:px-6 space-y-8">
-        <VoiceRecorder onTranscriptionComplete={addLog} disabled={!isClient || isLoading} />
-        {isLoading && isClient ? (
+        <VoiceRecorder onTranscriptionComplete={addLog} disabled={!isClient || !currentUserId || isLoading} />
+        {showLoadingOrInitializing ? (
           <div className="text-center py-10">
-            <p className="text-muted-foreground">Loading logs from database...</p>
+            <p className="text-muted-foreground">
+              {isLoading && currentUserId ? "Loading logs from database..." : "Initializing user session..."}
+            </p>
           </div>
-        ) : isClient ? (
+        ) : (
           <LogList
             logs={logs}
             selectedLogIds={selectedLogIds}
@@ -159,14 +184,11 @@ export default function VoiceTaskerApp() {
             onSelectAllLogs={selectAllLogs}
             onDeselectAllLogs={deselectAllLogs}
           />
-        ) : (
-           <div className="text-center py-10">
-            <p className="text-muted-foreground">Initializing...</p>
-          </div>
         )}
       </main>
       <footer className="py-4 text-center text-sm text-muted-foreground border-t">
         <p>&copy; {new Date().getFullYear()} VoiceTasker. All rights reserved.</p>
+        <p><a href="/admin/all-logs" className="underline hover:text-accent">View All User Logs (Admin)</a></p>
       </footer>
     </div>
   );
