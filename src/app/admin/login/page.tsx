@@ -116,11 +116,7 @@ export default function AdminLoginPage() {
            </Button>
         </CardFooter>
       </Card>
-       <p className="mt-6 text-xs text-muted-foreground text-center max-w-md">
-        Note: For this prototype, admin credentials (username: "admin", password: "adminpassword")
-        should be manually created in Firestore under 'adminCredentials/defaultAdmin'.
-        This login mechanism is for demonstration only and is not secure for production.
-      </p>
+        
     </div>
   );
 }
