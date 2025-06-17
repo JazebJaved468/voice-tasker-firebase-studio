@@ -1,6 +1,7 @@
+
 export interface LogEntry {
-  id: string;
+  id: string; // Document ID from Firestore
   text: string;
-  timestamp: Date;
-  selected?: boolean;
+  timestamp: Date; // JavaScript Date object, converted from Firestore Timestamp
+  selected?: boolean; // UI state, not stored in Firestore
 }
