@@ -21,6 +21,9 @@ import {
   writeBatch,
 } from 'firebase/firestore';
 import { getGuestUserId, trackGuestUserVisit } from '@/lib/user';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
+import { ShieldCheck } from 'lucide-react'; // Changed from UserShield
 
 const LOGS_COLLECTION = 'logs';
 
@@ -37,13 +40,13 @@ export default function VoiceTaskerApp() {
     const guestId = getGuestUserId();
     setCurrentUserId(guestId);
     if (guestId && guestId !== 'server-side-placeholder-user-id') {
-      trackGuestUserVisit(guestId); // Track user visit on app load
+      trackGuestUserVisit(guestId);
     }
   }, []);
 
   useEffect(() => {
     if (!isClient || !currentUserId) {
-      setIsLoading(false); // Set loading to false if no user ID yet or not client
+      setIsLoading(false);
       return;
     }
 
@@ -76,7 +79,7 @@ export default function VoiceTaskerApp() {
         toast({
           variant: "destructive",
           title: "Error Loading Logs",
-          description: "Could not fetch logs from the database. Please check your connection or Firebase setup.",
+          description: "Could not fetch logs. Please check connection or Firebase setup.",
         });
         setIsLoading(false);
       }
@@ -101,7 +104,6 @@ export default function VoiceTaskerApp() {
     };
     try {
       await addDoc(collection(db, LOGS_COLLECTION), newLog);
-      // Toast is now part of VoiceRecorder completion
     } catch (error) {
       console.error("Error adding log to Firestore:", error);
       toast({
@@ -135,7 +137,7 @@ export default function VoiceTaskerApp() {
       });
     }
   }, [isClient, toast]);
-  
+
   const deleteSelectedLogs = useCallback(async () => {
     if (!isClient || selectedLogIds.length === 0) return;
     const batch = writeBatch(db);
@@ -144,14 +146,14 @@ export default function VoiceTaskerApp() {
     });
     try {
       await batch.commit();
-      toast({ title: "Selected Logs Deleted", description: `${selectedLogIds.length} log(s) have been removed.` });
+      toast({ title: "Selected Logs Deleted", description: `${selectedLogIds.length} log(s) removed.` });
       setSelectedLogIds([]);
     } catch (error) {
       console.error("Error deleting selected logs from Firestore:", error);
       toast({
         variant: "destructive",
         title: "Error Deleting Logs",
-        description: "Could not delete all selected logs from the database.",
+        description: "Could not delete all selected logs.",
       });
     }
   }, [isClient, selectedLogIds, toast]);
@@ -191,9 +193,16 @@ export default function VoiceTaskerApp() {
           />
         )}
       </main>
-      <footer className="py-4 text-center text-sm text-muted-foreground border-t">
+      <footer className="py-6 text-center text-sm text-muted-foreground border-t space-y-2">
         <p>&copy; {new Date().getFullYear()} VoiceTasker. All rights reserved.</p>
-        <p><a href="/admin/all-logs" className="underline hover:text-accent">View All User Logs (Admin)</a></p>
+        <div>
+          <Button asChild variant="outline" className="border-primary text-primary hover:bg-primary/10">
+            <Link href="/admin/login">
+              <ShieldCheck className="mr-2 h-4 w-4" /> {/* Changed from UserShield */}
+              Admin Panel
+            </Link>
+          </Button>
+        </div>
       </footer>
     </div>
   );
