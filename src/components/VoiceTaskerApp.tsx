@@ -20,7 +20,7 @@ import {
   Timestamp,
   writeBatch,
 } from 'firebase/firestore';
-import { getGuestUserId } from '@/lib/user';
+import { getGuestUserId, trackGuestUserVisit } from '@/lib/user';
 
 const LOGS_COLLECTION = 'logs';
 
@@ -36,6 +36,9 @@ export default function VoiceTaskerApp() {
     setIsClient(true);
     const guestId = getGuestUserId();
     setCurrentUserId(guestId);
+    if (guestId && guestId !== 'server-side-placeholder-user-id') {
+      trackGuestUserVisit(guestId); // Track user visit on app load
+    }
   }, []);
 
   useEffect(() => {
