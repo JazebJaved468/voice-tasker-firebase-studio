@@ -21,7 +21,6 @@ import {
   writeBatch,
 } from 'firebase/firestore';
 import { getGuestUserId } from '@/lib/user';
-import { Loader2 } from 'lucide-react'; // Import Loader2 icon
 
 const LOGS_COLLECTION = 'logs';
 
@@ -171,7 +170,11 @@ export default function VoiceTaskerApp() {
         <VoiceRecorder onTranscriptionComplete={addLog} disabled={!isClient || !currentUserId || isLoading} />
         {showLoadingOrInitializing ? (
           <div className="flex justify-center items-center py-10">
-            <Loader2 className="h-10 w-10 text-primary animate-spin" />
+            <div className="flex space-x-2">
+              <div className="h-3 w-3 bg-primary rounded-full animate-pulse [animation-delay:-0.3s]"></div>
+              <div className="h-3 w-3 bg-primary rounded-full animate-pulse [animation-delay:-0.15s]"></div>
+              <div className="h-3 w-3 bg-primary rounded-full animate-pulse"></div>
+            </div>
           </div>
         ) : (
           <LogList
