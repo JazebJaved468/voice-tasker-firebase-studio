@@ -8,7 +8,10 @@ export async function transcribeAudioAction(audioDataUri: string): Promise<{ tra
     }
     const input: TranscribeVoiceLogInput = { voiceRecordingDataUri: audioDataUri };
     const result: TranscribeVoiceLogOutput = await transcribeVoiceLog(input);
-    return { transcription: result.transcription };
+    // For now, we'll use the English transcription for the main 'transcription' field.
+    // The other transcriptions (romanUrduTranscription, urduTranscription) are in the 'result' object
+    // and can be used by modifying the calling components if needed in the future.
+    return { transcription: result.englishTranscription };
   } catch (err) {
     console.error("Transcription error:", err);
     const errorMessage = err instanceof Error ? err.message : "Transcription failed due to an unknown error.";
