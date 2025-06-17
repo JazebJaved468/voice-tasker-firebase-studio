@@ -23,7 +23,7 @@ import {
 import { getGuestUserId, trackGuestUserVisit } from '@/lib/user';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { ShieldCheck } from 'lucide-react'; // Changed from UserShield
+import { ShieldCheck } from 'lucide-react';
 
 const LOGS_COLLECTION = 'logs';
 
@@ -196,9 +196,9 @@ export default function VoiceTaskerApp() {
       <footer className="py-6 text-center text-sm text-muted-foreground border-t space-y-2">
         <p>&copy; {new Date().getFullYear()} VoiceTasker. All rights reserved.</p>
         <div>
-          <Button asChild variant="outline" className="border-primary text-primary hover:bg-primary/10">
+          <Button asChild className="bg-accent text-accent-foreground hover:bg-accent/90">
             <Link href="/admin/login">
-              <ShieldCheck className="mr-2 h-4 w-4" /> {/* Changed from UserShield */}
+              <ShieldCheck className="mr-2 h-4 w-4" />
               Admin Panel
             </Link>
           </Button>
